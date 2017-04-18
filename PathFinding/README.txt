@@ -1,0 +1,1 @@
+Set Input.xml for change PathFinding input. Read on generate, you can modify it while using .exe

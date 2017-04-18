@@ -1,12 +1,17 @@
-#include <SFML/Graphics.hpp>
-#include "Line.h"
-#include "Button.h"
 #include <iostream>
+#include <SFML/Graphics.hpp>
+#include "Button.h"
+#include "Line.h"
+#include "ParserInput.h"
+
 using namespace sf;
 using namespace std;
 
+
 int main()
 {
+	ParserInput mParseInput;
+
 	//WinSreen
 	const float SCREEN_SIZE_X = 810;
 	const float SCREEN_SIZE_Y = 810;
@@ -48,7 +53,7 @@ int main()
 				cout << "Left Mouse Pressed in coord (" << m_oLocalPosition.x << " , " << m_oLocalPosition.y << ")" << endl;
 				if (m_oGenerate.IsMouseClickOn(m_oLocalPosition))
 				{
-					cout << "GENERATE!" << endl;
+					mParseInput.ReadInput();
 				}
 			}
 		}
