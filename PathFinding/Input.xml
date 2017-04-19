@@ -4,4 +4,12 @@
 	
 	<TargetPosX>10</TargetPosX>
 	<TargetPosY>10</TargetPosY>
+	
+	<MapWidth>20</MapWidth>
+	<MapHeight>20</MapHeight>
+	
+	<BufferSize>100</BufferSize>
+	
+	<BufferSize>100</BufferSize>
+	<Map>1110111111111011110111111</Map>
 </Root>
