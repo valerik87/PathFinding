@@ -15,6 +15,11 @@ void Button::SetFillColor(Color color)
 	setFillColor(color);
 }
 
+void Button::SetSize(Vector2f size)
+{
+	setSize(size);
+}
+
 bool Button::IsMouseClickOn(Vector2i i_iMousePosition) const
 {
 	Vector2f m_oOriginPos = RectangleShape::getPosition();

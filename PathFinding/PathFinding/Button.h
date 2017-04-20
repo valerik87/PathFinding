@@ -5,10 +5,12 @@ using namespace sf;
 
 class Button : public RectangleShape {
 public:
+	Button() {};
 	Button(Vector2f size);
 
 	void SetPosition(Vector2f pos);
 	void SetFillColor(Color color);
+	void SetSize(Vector2f size);
 
 	bool IsMouseClickOn(Vector2i i_iMousePosition) const ;
 

@@ -160,16 +160,22 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="Button.cpp" />
+    <ClCompile Include="Graphic.cpp" />
     <ClCompile Include="Line.cpp" />
     <ClCompile Include="Main.cpp" />
     <ClCompile Include="ParseInput.cpp" />
+    <ClCompile Include="PathFindingResolver.cpp" />
     <ClCompile Include="tinyxml2.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Button.h" />
     <ClInclude Include="Drawable.h" />
+    <ClInclude Include="Graphic.h" />
     <ClInclude Include="Line.h" />
+    <ClInclude Include="Main.h" />
     <ClInclude Include="ParserInput.h" />
+    <ClInclude Include="PathFindingInput.h" />
+    <ClInclude Include="PathFindingResolver.h" />
     <ClInclude Include="tinyxml2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
