@@ -62,9 +62,7 @@ void Graphic::SetGridParams(const PathFindingInput* i_pGridInput)
 	//Set Draw StartTile
 	sf::Vector2f	m_vStartTileSize(TILE_SIZE, TILE_SIZE);
 	m_oStartTile.setSize(m_vStartTileSize);
-	/*sf::Vector2f	m_vGreenBGOrigin(SCREEN_SIZE_X / 2 - GENERATE_BUTTON_SIZE_X / 2, SCREEN_SIZE_Y*0.9f);*/
-	m_oStartTile.setPosition(m_vWhiteBGOrigin); //TODO
-	m_oStartTile.setFillColor(Color::Blue);
+	m_oStartTile.setPosition(m_vWhiteBGOrigin);
 
 	//Defines Lines
 	//RedLine Vertical

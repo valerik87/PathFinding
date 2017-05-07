@@ -68,5 +68,14 @@
     <ClInclude Include="PathFindingInput.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="GridTile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="StartTile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="PathTile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

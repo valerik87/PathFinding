@@ -3,6 +3,8 @@
 #include "Button.h"
 #include "Line.h"
 #include "PathFindingInput.h"
+#include "PathTile.h"
+#include "StartTile.h"
 
 using namespace PathFindingStructs;
 using namespace sf;
@@ -31,7 +33,7 @@ private:
 	float TILE_SIZE = 10.0f;
 	vector<Line>	m_oVerticalLines;
 	vector<Line>	m_oHorizontalLines;
-	sf::RectangleShape		m_oStartTile;
+	StartTile		m_oStartTile;
 
 	//Background
 	float  BG_SIZE_X = 200.f;
@@ -42,4 +44,6 @@ private:
 	const float GENERATE_BUTTON_SIZE_X = 65.f;
 	const float GENERATE_BUTTON_SIZE_Y = 30.0f;
 	Button					m_oGenerate;
+
+	vector<PathTile*> PathTiles; //#TODO
 };
