@@ -4,10 +4,13 @@
 
 class Line {
 public:
-	Line(const sf::Vertex i_pStartPosition, const sf::Vertex i_pEndPosition,const sf::Color i_oColor);
+	Line();
+	Line(const sf::Vertex i_pStartPosition, const sf::Vertex i_pEndPosition);
+	Line(const Line& other);
+
+	Line* operator=(Line& other);
 
 	const sf::Vertex* GetVertex() const { return m_oVertex; }
-	void SetPosition(const sf::Vector2f i_oPosition);
 
 private:
 	sf::Vertex m_oStartPosition;

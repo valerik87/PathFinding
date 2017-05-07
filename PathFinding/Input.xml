@@ -5,8 +5,8 @@
 	<TargetPosX>10</TargetPosX>
 	<TargetPosY>10</TargetPosY>
 	
-	<MapWidth>20</MapWidth>
-	<MapHeight>20</MapHeight>
+	<MapWidth>10</MapWidth>
+	<MapHeight>10</MapHeight>
 	
 	<BufferSize>100</BufferSize>
 	

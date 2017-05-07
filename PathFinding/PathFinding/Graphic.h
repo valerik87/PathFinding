@@ -6,6 +6,7 @@
 
 using namespace PathFindingStructs;
 using namespace sf;
+using namespace std;
 
 class Graphic
 {
@@ -21,13 +22,20 @@ public:
 
 private:
 	//Window
-	const float SCREEN_SIZE_X = 810;
-	const float SCREEN_SIZE_Y = 810;
+	const float SCREEN_SIZE_X = 800;
+	const float SCREEN_SIZE_Y = 800;
 	RenderWindow* m_oWindow;
 
+	//Grid_Inputs
+	PathFindingInput* m_PathFindInput;
+	float TILE_SIZE = 10.0f;
+	vector<Line>	m_oVerticalLines;
+	vector<Line>	m_oHorizontalLines;
+	sf::RectangleShape		m_oStartTile;
+
 	//Background
-	const float  BG_SIZE_X = 190.f;
-	const float  BG_SIZE_Y = 190.f;
+	float  BG_SIZE_X = 200.f;
+	float  BG_SIZE_Y = 200.f;
 	sf::RectangleShape		m_oWhiteRect;
 
 	//Generate Button
