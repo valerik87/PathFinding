@@ -179,6 +179,7 @@
     <ClInclude Include="PathFindingResolver.h" />
     <ClInclude Include="PathTile.h" />
     <ClInclude Include="StartTile.h" />
+    <ClInclude Include="TargetTile.h" />
     <ClInclude Include="tinyxml2.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

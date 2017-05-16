@@ -89,4 +89,11 @@ void Graphic::SetGridParams(const PathFindingInput* i_pGridInput)
 		Line line2 = Line(m_oStart2, m_oEnd2);
 		m_oHorizontalLines[i] = line2;
 	}
+
+	int X = -1;
+	int Y = -1;
+	int testIndex = 112;
+
+	using namespace Utilities;
+	GetGridIndexFromArrayIndex(testIndex, X, Y, BG_SIZE_X,BG_SIZE_Y);
 }

@@ -77,5 +77,8 @@
     <ClInclude Include="PathTile.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="TargetTile.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
 </Project>

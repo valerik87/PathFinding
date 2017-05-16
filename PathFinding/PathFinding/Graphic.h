@@ -1,6 +1,7 @@
 #pragma once
 #include <SFML/Graphics.hpp>
 #include "Button.h"
+#include <iostream>
 #include "Line.h"
 #include "PathFindingInput.h"
 #include "PathTile.h"
@@ -46,4 +47,20 @@ private:
 	Button					m_oGenerate;
 
 	vector<PathTile*> PathTiles; //#TODO
+};
+
+namespace Utilities
+{
+	/*int GetArrayIndexFromMatrix(int x, int y, int sizeX, int sizeY)
+	{
+		
+	}*/
+
+	inline void GetGridIndexFromArrayIndex(int i_iArrayIndex, int o_iXCoord, int o_iYCoord, int i_iSizeX,int i_iSizeY)
+	{
+		o_iYCoord = (int)(i_iArrayIndex / i_iSizeY);
+		o_iXCoord = (int)(i_iArrayIndex % i_iSizeX);
+		using namespace std;
+		cout << "From ArrayIndex: "<< i_iArrayIndex << " --> (x,y):(" << o_iXCoord << "," << o_iYCoord << ")" << endl;
+	};
 };
