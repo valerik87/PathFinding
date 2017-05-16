@@ -154,7 +154,7 @@ namespace PathFindingStructs
 		const XMLElement * pMap = i_pNode->FirstChildElement("Map");
 		if (pMap)
 		{
-		
+			//TODO
 			const char * pOutChar = pMap->GetText();
 			if (pOutChar != nullptr)
 			{

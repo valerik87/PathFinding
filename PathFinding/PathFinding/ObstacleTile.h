@@ -1,15 +1,15 @@
 #pragma once
 #include "SFML\Graphics\RectangleShape.hpp"
 
-class TargetTile : public sf::RectangleShape
+class ObstacleTile : public sf::RectangleShape
 {
 public:
-	TargetTile()
+	ObstacleTile()
 	{
 		SetFillColor();
 	}
 protected:
 	virtual void SetFillColor() { setFillColor(m_oColor); }
 
-	sf::Color m_oColor = sf::Color::Magenta;
+	sf::Color m_oColor = sf::Color::Red;
 };

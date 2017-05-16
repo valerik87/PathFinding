@@ -1,9 +1,9 @@
 <Root>
-	<StartPosX>0</StartPosX>
+	<StartPosX>2</StartPosX>
 	<StartPosY>0</StartPosY>
 	
-	<TargetPosX>10</TargetPosX>
-	<TargetPosY>10</TargetPosY>
+	<TargetPosX>9</TargetPosX>
+	<TargetPosY>9</TargetPosY>
 	
 	<MapWidth>10</MapWidth>
 	<MapHeight>10</MapHeight>
@@ -11,5 +11,5 @@
 	<BufferSize>100</BufferSize>
 	
 	<BufferSize>100</BufferSize>
-	<Map>1110111111111011110111111</Map>
+	<Map>0111111111101111111111011111111110111111111101111111111011111111110111111111101111111111011111111110</Map>
 </Root>

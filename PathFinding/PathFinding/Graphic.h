@@ -3,9 +3,11 @@
 #include "Button.h"
 #include <iostream>
 #include "Line.h"
+#include "ObstacleTile.h"
 #include "PathFindingInput.h"
 #include "PathTile.h"
 #include "StartTile.h"
+#include "TargetTile.h"
 
 using namespace PathFindingStructs;
 using namespace sf;
@@ -24,6 +26,9 @@ public:
 	const Button* GetGenerateButton() { return &m_oGenerate; };
 
 private:
+
+	sf::Vector2f GetGridPosition(int i_iX, int i_Y);
+
 	//Window
 	const float SCREEN_SIZE_X = 800;
 	const float SCREEN_SIZE_Y = 800;
@@ -34,7 +39,16 @@ private:
 	float TILE_SIZE = 10.0f;
 	vector<Line>	m_oVerticalLines;
 	vector<Line>	m_oHorizontalLines;
+
+	//StartTile
 	StartTile		m_oStartTile;
+
+	//TargetTile
+	TargetTile		m_oTargetTile;
+
+	//Vector of all Obstacles
+	vector<int>				m_oObstaclesArrayIndex;
+	vector<ObstacleTile>	m_oObstacles;
 
 	//Background
 	float  BG_SIZE_X = 200.f;
@@ -51,16 +65,22 @@ private:
 
 namespace Utilities
 {
-	/*int GetArrayIndexFromMatrix(int x, int y, int sizeX, int sizeY)
+	inline void GetGridIndexFromArrayIndex(int i_iArrayIndex, int* o_iXCoord, int* o_iYCoord, int i_iSizeX,int i_iSizeY)
 	{
-		
-	}*/
+		*o_iYCoord = 0;
+		*o_iYCoord = (int)(i_iArrayIndex / i_iSizeY);
+		*o_iXCoord = 0;
+		*o_iXCoord = (int)(i_iArrayIndex % i_iSizeX);
+		/*using namespace std;
+		cout << "From ArrayIndex: "<< i_iArrayIndex << " --> (x,y):(" << *o_iXCoord << "," << *o_iYCoord << ")" << endl;*/
+	};
 
-	inline void GetGridIndexFromArrayIndex(int i_iArrayIndex, int o_iXCoord, int o_iYCoord, int i_iSizeX,int i_iSizeY)
+	inline void GetArrayIndexFromGridIndex(int* o_iArrayIndex, int i_iXCoord, int i_iYCoord, int i_iSizeX, int i_iSizeY)
 	{
-		o_iYCoord = (int)(i_iArrayIndex / i_iSizeY);
-		o_iXCoord = (int)(i_iArrayIndex % i_iSizeX);
-		using namespace std;
-		cout << "From ArrayIndex: "<< i_iArrayIndex << " --> (x,y):(" << o_iXCoord << "," << o_iYCoord << ")" << endl;
+		*o_iArrayIndex = 0;
+		*o_iArrayIndex += i_iYCoord * i_iSizeY;
+		*o_iArrayIndex += i_iXCoord % i_iSizeY;
+		/*using namespace std;
+		cout << "From GridIndex: (x,y):(" << i_iXCoord << "," << i_iYCoord << ") --> ArrayIndex: " << *o_iArrayIndex <<  endl;*/
 	};
 };
