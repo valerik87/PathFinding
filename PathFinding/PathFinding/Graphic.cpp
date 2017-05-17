@@ -111,6 +111,7 @@ void Graphic::SetGridParams(const PathFindingInput* i_pGridInput)
 			cout << "At ArrayIndex " << i << " founded a zero" << endl;			
 		}
 	}
+	m_oObstacles.clear();
 	m_oObstacles.resize(iCount);
 	for (int i = 0, j = 0; i_pGridInput->pMap[i] != '\0'; ++i)
 	{

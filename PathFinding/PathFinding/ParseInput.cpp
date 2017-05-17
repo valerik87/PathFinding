@@ -158,6 +158,19 @@ namespace PathFindingStructs
 			const char * pOutChar = pMap->GetText();
 			if (pOutChar != nullptr)
 			{
+				int size = strlen(pOutChar);
+
+				char* cpy = const_cast<char*>(pOutChar);	// an alias to iterate through pOutChar without moving pOutChar
+				char* temp = new char[size];				// this one produces the desired string
+				pOutChar = temp;							
+
+				while (*cpy != '\0') 
+				{
+					if (*cpy == '\t' || *cpy == '\n')
+						cpy++;
+					else
+						*temp++ = *cpy++;
+				}
 				memcpy(&m_oPathFindingInput.pMap, &pOutChar, sizeof(pOutChar));
 			}
 			else

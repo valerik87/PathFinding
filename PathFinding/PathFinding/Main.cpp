@@ -19,6 +19,7 @@ int main()
 	Graphic		m_oGraphic;
 
 	sf::RenderWindow m_oWindow(sf::VideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y), "Path Finding!");
+	m_oWindow.setVerticalSyncEnabled(true);
 	m_oGraphic.InitGraphic(&m_oWindow);
 
 	if (m_oGraphic.GetGenerateButton())
@@ -34,6 +35,7 @@ int main()
 				//MOUSE
 				if (sf::Mouse::isButtonPressed(sf::Mouse::Left))
 				{
+
 					// left mouse button is pressed
 					sf::Vector2i m_oLocalPosition = sf::Mouse::getPosition(m_oWindow);
 					cout << "Left Mouse Pressed in coord (" << m_oLocalPosition.x << " , " << m_oLocalPosition.y << ")" << endl;
@@ -50,6 +52,7 @@ int main()
 				}
 				m_oGraphic.UpdateGraphic();
 			}
+			
 		}
 	}
 
