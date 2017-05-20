@@ -5,15 +5,19 @@ using namespace PathFindingStructs;
 class PathFindingResolver
 {
 public:
-	void SetInput(const PathFindingInput* i_oPathFindingInput);
-	const int* GetInput();
-private:
-	int FindPath(	const int nStartX, const int nStartY,
-					const int nTargetX, const int nTargetY,
-					const unsigned char* pMap, 
-					const int nMapWidth, const int nMapHeight,
-					int* pOutBuffer, const int nOutBufferSize);
+	PathFindingResolver():
+		m_oPathFindingOutput()
+	{
 
-	int* m_vOutBuffer;
-	PathFindingInput* m_oPathfindingInput;
+	};
+	const PathFindingOutput* GetSolution(const PathFindingInput* const i_pPathFindingInput);
+private:
+	int FindPath(	const int i_iStartX, const int i_iStartY,
+					const int i_iTargetX, const int i_iTargetY,
+					const unsigned char* i_pMap, 
+					const int i_iMapWidth, const int i_iMapHeight,
+					int* i_pOutBuffer, const int i_iOutBufferSize);
+
+	PathFindingInput		m_oPathfindingInput;
+	PathFindingOutput		m_oPathFindingOutput;
 };

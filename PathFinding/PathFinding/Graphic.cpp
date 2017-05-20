@@ -1,5 +1,6 @@
 #include "Graphic.h"
 #include "PathFindingInput.h"
+#include "Utilities.h"
 
 
 //WinSreen
@@ -68,12 +69,12 @@ void Graphic::SetGridParams(const PathFindingInput* i_pGridInput)
 	//Set Draw StartTile
 	sf::Vector2f	m_vStartTileSize(TILE_SIZE, TILE_SIZE);
 	m_oStartTile.setSize(m_vStartTileSize);
-	m_oStartTile.setPosition(GetGridPosition(i_pGridInput->iStartX, i_pGridInput->iStartY));
+	m_oStartTile.setPosition(GetGridPositionV2f(i_pGridInput->iStartX, i_pGridInput->iStartY));
 
 	//Set Draw TargetTile
 	sf::Vector2f	m_vTargetTileSize(TILE_SIZE, TILE_SIZE);
 	m_oTargetTile.setSize(m_vTargetTileSize);
-	m_oTargetTile.setPosition(GetGridPosition(i_pGridInput->iTargetX, i_pGridInput->iTargetY));
+	m_oTargetTile.setPosition(GetGridPositionV2f(i_pGridInput->iTargetX, i_pGridInput->iTargetY));
 
 	//Defines Lines
 	//RedLine Vertical
@@ -123,7 +124,7 @@ void Graphic::SetGridParams(const PathFindingInput* i_pGridInput)
 			GetGridIndexFromArrayIndex(i, &X, &Y, i_pGridInput->iMapWidth, i_pGridInput->iMapHeight);
 			sf::Vector2f	m_vObstacleTileSize(TILE_SIZE, TILE_SIZE);
 			m_oObstacles[j].setSize(m_vObstacleTileSize);
-			m_oObstacles[j].setPosition(GetGridPosition(X,Y));
+			m_oObstacles[j].setPosition(GetGridPositionV2f(X,Y));
 			++j;
 		}
 	}
@@ -143,7 +144,7 @@ void Graphic::SetGridParams(const PathFindingInput* i_pGridInput)
 	GetArrayIndexFromGridIndex(TestIndex, *X, *Y, BG_SIZE_X, BG_SIZE_Y);*/
 }
 
-sf::Vector2f Graphic::GetGridPosition(int i_iX, int i_iY)
+sf::Vector2f Graphic::GetGridPositionV2f(int i_iX, int i_iY)
 {
 	return sf::Vector2f((SCREEN_SIZE_X / 2) - (BG_SIZE_X / 2) + TILE_SIZE*i_iX, (SCREEN_SIZE_Y / 2) - (BG_SIZE_Y / 2) + TILE_SIZE*i_iY);
 }

@@ -154,7 +154,6 @@ namespace PathFindingStructs
 		const XMLElement * pMap = i_pNode->FirstChildElement("Map");
 		if (pMap)
 		{
-			//TODO
 			const char * pOutChar = pMap->GetText();
 			if (pOutChar != nullptr)
 			{
@@ -171,6 +170,7 @@ namespace PathFindingStructs
 					else
 						*temp++ = *cpy++;
 				}
+				//delete(temp);
 				memcpy(&m_oPathFindingInput.pMap, &pOutChar, sizeof(pOutChar));
 			}
 			else

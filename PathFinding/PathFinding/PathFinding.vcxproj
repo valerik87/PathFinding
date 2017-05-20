@@ -182,6 +182,7 @@
     <ClInclude Include="StartTile.h" />
     <ClInclude Include="TargetTile.h" />
     <ClInclude Include="tinyxml2.h" />
+    <ClInclude Include="Utilities.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

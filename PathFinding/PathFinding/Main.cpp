@@ -3,6 +3,7 @@
 
 #include "Graphic.h"
 #include "ParserInput.h"
+#include "PathFindingResolver.h"
 #include "Main.h"
 
 using namespace sf;
@@ -15,8 +16,9 @@ const static float SCREEN_SIZE_Y = 810;
 
 int main()
 {
-	ParserInput m_oParseInput;
-	Graphic		m_oGraphic;
+	ParserInput			m_oParseInput;
+	Graphic				m_oGraphic;
+	PathFindingResolver m_oPathFindingResolver;
 
 	sf::RenderWindow m_oWindow(sf::VideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y), "Path Finding!");
 	m_oWindow.setVerticalSyncEnabled(true);
@@ -46,6 +48,7 @@ int main()
 						if (ioPathFindingInput != nullptr)
 						{
 							m_oGraphic.SetGridParams(ioPathFindingInput);
+							const PathFindingOutput* pPathFIndingOutput = m_oPathFindingResolver.GetSolution(ioPathFindingInput);
 							//Calculate path finding
 						}
 					}
