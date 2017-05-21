@@ -42,11 +42,20 @@ int PathFindingResolver::FindPath
 	i_pOutBuffer[0] = iLengthFound;
 
 	//From Start position need to get the list of adjacent obj;
-	/*using namespace Utilities;
+	using namespace Utilities;
 	using namespace std;
+	int iStartIndexA = -1;
 	GetArrayIndexFromGridIndex(&iStartIndexA,i_iStartX, i_iStartY,i_iMapWidth,i_iMapHeight);
-	cout << "StartIndexA: " << iStartIndexA << endl;*/
+	cout << "StartIndexA: " << iStartIndexA << endl;
 
+	int UpPosIndex = GetUpIndexFromArrayIndex(iStartIndexA, i_iMapWidth);
+	cout << "UpPosIndex: " << UpPosIndex << endl;
+	int BottomPosIndex = GetBottomIndexFromArrayIndex(iStartIndexA, i_iMapWidth, i_iMapHeight);
+	cout << "BottomPosIndex: " << BottomPosIndex << endl;
+	int LeftPosIndex = GetLeftIndexFromArrayIndex(iStartIndexA, i_iMapWidth, i_iMapHeight);
+	cout << "LeftPosIndex: " << LeftPosIndex << endl;
+	int RightPosIndex = GetRightIndexFromArrayIndex(iStartIndexA, i_iMapWidth, i_iMapHeight);
+	cout << "RightPosIndex: " << RightPosIndex << endl;
 	//TEST
 	/*i_pOutBuffer[0] = 3;
 	i_pOutBuffer[1] = 4;
