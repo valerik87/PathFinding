@@ -39,5 +39,6 @@ namespace PathFindingStructs
 	{
 		//Cell's index defining path
 		int*	pOutBuffer;
+		int		iSize;
 	};
 }

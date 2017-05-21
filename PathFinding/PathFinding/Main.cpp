@@ -49,6 +49,7 @@ int main()
 						{
 							m_oGraphic.SetGridParams(ioPathFindingInput);
 							const PathFindingOutput* pPathFIndingOutput = m_oPathFindingResolver.GetSolution(ioPathFindingInput);
+							m_oGraphic.SetSolution(pPathFIndingOutput);
 							//Calculate path finding
 						}
 					}

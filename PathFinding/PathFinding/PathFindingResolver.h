@@ -7,9 +7,7 @@ class PathFindingResolver
 public:
 	PathFindingResolver():
 		m_oPathFindingOutput()
-	{
-
-	};
+	{};
 	const PathFindingOutput* GetSolution(const PathFindingInput* const i_pPathFindingInput);
 private:
 	int FindPath(	const int i_iStartX, const int i_iStartY,

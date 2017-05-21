@@ -8,7 +8,7 @@ const PathFindingOutput* PathFindingResolver::GetSolution(const PathFindingInput
 	m_oPathfindingInput = i_pPathFindingInput;
 	m_oPathFindingOutput.pOutBuffer = new int[m_oPathfindingInput.iOutBufferSize];
 	
-	int iSolutionLength = FindPath
+	m_oPathFindingOutput.iSize = FindPath
 		(
 			m_oPathfindingInput.iStartX,
 			m_oPathfindingInput.iStartY,
@@ -19,7 +19,8 @@ const PathFindingOutput* PathFindingResolver::GetSolution(const PathFindingInput
 			m_oPathfindingInput.iMapHeight,
 			m_oPathFindingOutput.pOutBuffer,
 			m_oPathfindingInput.iOutBufferSize
-			);
+		);
+
 	return &m_oPathFindingOutput;
 }
 
@@ -37,15 +38,19 @@ int PathFindingResolver::FindPath
 )
 {
 	//init default return and outputVariable with unfeasable values
-	int iStartIndexA = -1;
-	*i_pOutBuffer = iStartIndexA;
+	int iLengthFound = -1;
+	i_pOutBuffer[0] = iLengthFound;
 
 	//From Start position need to get the list of adjacent obj;
-	using namespace Utilities;
+	/*using namespace Utilities;
 	using namespace std;
 	GetArrayIndexFromGridIndex(&iStartIndexA,i_iStartX, i_iStartY,i_iMapWidth,i_iMapHeight);
-	cout << "StartIndexA: " << iStartIndexA << endl;
-	*i_pOutBuffer = iStartIndexA;
+	cout << "StartIndexA: " << iStartIndexA << endl;*/
 
-	return -1;
+	//TEST
+	/*i_pOutBuffer[0] = 3;
+	i_pOutBuffer[1] = 4;
+	i_pOutBuffer[2] = 5;
+	return 3;*/
+	return iLengthFound;
 }
