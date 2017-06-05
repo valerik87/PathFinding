@@ -1,6 +1,5 @@
 ﻿#include "PathFindingResolver.h"
 
-#include <iostream>
 #include "Utilities.h"
 
 const PathFindingOutput* PathFindingResolver::GetSolution(const PathFindingInput* const i_pPathFindingInput)
@@ -63,3 +62,8 @@ int PathFindingResolver::FindPath
 	return 3;*/
 	return iLengthFound;
 }
+
+//void PathFindingResolver::GetValidNeighborhood(const vector<int*> io_pNeighborhood)
+//{
+//	io_pNeighborhood
+//}

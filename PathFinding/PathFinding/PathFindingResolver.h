@@ -1,6 +1,11 @@
 #pragma once
+
+#include <iostream>
 #include "ParserInput.h"
+
+
 using namespace PathFindingStructs;
+using namespace std;
 
 class PathFindingResolver
 {
@@ -18,4 +23,6 @@ private:
 
 	PathFindingInput		m_oPathfindingInput;
 	PathFindingOutput		m_oPathFindingOutput;
+
+//	void GetValidNeighborhood(const vector io_pNeighborhood);
 };

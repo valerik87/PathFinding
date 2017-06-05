@@ -12,7 +12,7 @@ namespace PathFindingStructs
 		PathFindingInput m_oPathFindingInput;
 	private:
 		const char* m_cPath = "..\\Input.xml";
-		XMLDocument m_oDoc;
+		tinyxml2::XMLDocument m_oDoc;
 		XMLError	m_oError;
 
 		void ReadStart(const XMLNode* i_pNode);
