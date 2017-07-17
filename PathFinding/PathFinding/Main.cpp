@@ -16,6 +16,8 @@ const static float SCREEN_SIZE_X = 810;
 const static float SCREEN_SIZE_Y = 810;
 
 #define THREAD_TEST
+#undef THREAD_TEST
+
 DWORD WINAPI ThreadTest(LPVOID lpParameter)
 {
 	unsigned int& myCounter = *((unsigned int*)lpParameter);
@@ -46,12 +48,6 @@ int main()
 	sf::RenderWindow m_oWindow(sf::VideoMode(SCREEN_SIZE_X, SCREEN_SIZE_Y), "Path Finding!");
 	m_oWindow.setVerticalSyncEnabled(true);
 	m_oGraphic.InitGraphic(&m_oWindow);
-
-	
-
-
-
-
 
 	if (m_oGraphic.GetGenerateButton())
 	{

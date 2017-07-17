@@ -1,9 +1,9 @@
 <Root>
-	<StartPosX>0</StartPosX>
-	<StartPosY>2</StartPosY>
+	<StartPosX>3</StartPosX>
+	<StartPosY>0</StartPosY>
 	
-	<TargetPosX>9</TargetPosX>
-	<TargetPosY>9</TargetPosY>
+	<TargetPosX>0</TargetPosX>
+	<TargetPosY>1</TargetPosY>
 	
 	<MapWidth>10</MapWidth>
 	<MapHeight>10</MapHeight>
