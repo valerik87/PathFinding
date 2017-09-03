@@ -23,13 +23,15 @@ private:
 	{
 		Node():
 			m_iPosition(-1),
-			m_iWeight(-1)
+			m_iWeight(-1),
+			m_iParent(-1)
 		{};
 
-		Node(int i_iPosition , int i_iWeight)
+		Node(int i_iPosition , int i_iWeight, int i_iParent)
 		{
 			m_iPosition = i_iPosition;
 			m_iWeight = i_iWeight;
+			m_iParent = i_iParent;
 		}
 
 		/*		-1 this<other, 0 this=other, 1 else		*/
@@ -50,23 +52,28 @@ private:
 		}
 		friend std::ostream & operator<<(std::ostream &os, Node const &m)
 		{
-			return os << "(" << m.m_iPosition << "," << m.m_iWeight << ")";
+			return os << "(" << m.m_iPosition << "," << m.m_iWeight << "," << m.m_iParent << ")";
 		}
 
 		bool IsValid() const
 		{
-			return m_iPosition > -1 && m_iWeight > -1;
+			return m_iPosition > -1 && m_iWeight > -1 && m_iParent > -1;
 		}
 		void Invalidate()
 		{
 			this->m_iPosition = -1;
 			this->m_iWeight = -1;
+			this->m_iParent = -1;
 		}
 
+		bool IsStartNode()
+		{
+			return m_iPosition == m_iParent;
+		}
 		
-
 		int m_iPosition;
 		int m_iWeight;
+		int m_iParent;
 	};
 
 	int		FindPath(const int i_iStartX, const int i_iStartY,
@@ -84,6 +91,7 @@ private:
 		- Explore all best sub-optimal. Add their neighbour to NodeToExplore, move sub-optimal in NodeExploredNotOptimal.
 	*/
 	void	ExplorationPhase();
+	void	BackTrip();
 	
 	/*
 	Before add a node in solution search sub-case:
@@ -93,9 +101,6 @@ private:
 	void	AddToSolution(const Node& node);
 	bool	IsTargetNode(const Node& node);
 
-	inline void	SearchAroundNode(const Node& o_oNode, const int i_iMapWidth, const int i_iMapHeight, int i_iLengthFound, const unsigned char* i_pMap);
-	void		SearchAroundPosition(int i_iNodeArrayIndex, const int i_iMapWidth, const int i_iMapHeight, int i_iLengthFound, const unsigned char* i_pMap);
-	
 	//Fill the vector with the feasable four neighborhood
 	void	GetNeighborhood(vector<int>& o_vNeighborhood, const int i_iIndexA, const int i_iMapWidth, int i_iMapHeight) const;
 	void	GetNeighbourNodeFromVectorNode(vector<Node>& o_vOutput, const vector<Node>& i_vInput) const;
@@ -116,6 +121,7 @@ private:
 	set<Node>		m_vNodeToExplore;
 	set<Node>		m_vNodeToExploreNotOptimal;
 	Node			m_oLastNodeAdded;
+	Node			m_oTarget;
 
 	int				m_iStepLimit;
 	int				m_iStepCounter;

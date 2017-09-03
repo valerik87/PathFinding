@@ -56,22 +56,24 @@ int PathFindingResolver::FindPath
 	//From Start position need to get the list of adjacent obj;
 	int iStartIndexA = -1;
 
-	//Define StartNode
+	//1)Define StartNode and insert it in NodeToExplore
 	GetArrayIndexFromGridIndex(&iStartIndexA,i_iStartX, i_iStartY,i_iMapWidth,i_iMapHeight);
 	cout << "StartIndexA: " << iStartIndexA << '\n' <<  endl;
-	m_vNodeToExplore.insert(Node(iStartIndexA, iLengthFound));
+	Node StartNode(iStartIndexA, iLengthFound, iStartIndexA);
+	m_vNodeToExplore.insert(StartNode);
 
 	while (m_iStepCounter<m_iStepLimit && !m_bTargetFound)
 	{
 		ExplorationPhase();
 	}
+	BackTrip();
 	
 	//TEST
 	/*i_pOutBuffer[0] = 3;
 	i_pOutBuffer[1] = 4;
 	i_pOutBuffer[2] = 5;*/
-	return 3;
-	return iLengthFound;
+	/*return 3;*/
+	return m_oPathFindingOutput.iSize;
 }
 
 void PathFindingResolver::ExplorationPhase()
@@ -80,12 +82,19 @@ void PathFindingResolver::ExplorationPhase()
 	PrintNodeIn(&m_vNodeToExplore);
 	cout << endl;
 
+	/*
+	2) From NodeToExplore search if there is:
+		21: founded a local minimum, node with lesser weight among all nodes in NodeToExplore
+		22: founded more node with same weight among all nodes in NodeToExplore
+		23: nothing founded
+	*/
 	Node oMinWeight;
 	GetLesserWeightNode(&oMinWeight, &m_vNodeToExplore);
 	if (oMinWeight.IsValid())
 	{
 		/*
-		-Found a single local min :
+		21A)
+		-Founded a single local min :
 		-Add to solution
 		*/
 		cout << "Founded a Node(" << oMinWeight.m_iPosition << "," << oMinWeight.m_iWeight << ")" << " in NodeToExplore with a local min weight." << endl;
@@ -95,21 +104,30 @@ void PathFindingResolver::ExplorationPhase()
 		if (!m_bTargetFound)
 		{
 			/*
-			-Explore him.Add/update its neighbours on NodeToExplore
+			21A1)
+			Explore the single node because isn't the Target.
+			Add/update its neighbours on NodeToExplore
 			*/
 			vector<int> vNeighbourhood;
 			vNeighbourhood.reserve(4);
 			GetNeighborhood(vNeighbourhood, oMinWeight.m_iPosition, m_oPathfindingInput.iMapWidth, m_oPathfindingInput.iMapWidth);
 
+			/*
+			Check if neighbours are valid, Set their parent.
+			*/
 			vector<Node> vNodeToMove;
 			for_each(vNeighbourhood.begin(), vNeighbourhood.end(), [&](int index)
 			{
 				if (index != -1 && m_oPathfindingInput.pMap[index] == '1')
 				{
-					vNodeToMove.push_back(Node(index, oMinWeight.m_iWeight + 1));
+					vNodeToMove.push_back(Node(index, oMinWeight.m_iWeight + 1, oMinWeight.m_iPosition));
 				}
 			}
 			);
+
+			/*
+			Moves valid ones in Node to explore
+			*/
 			MoveNodeToExplore(&vNodeToMove);
 
 			cout << "Now in NodeToExplore: ";
@@ -118,118 +136,142 @@ void PathFindingResolver::ExplorationPhase()
 		}
 		else
 		{
+			/*
+			21A2)
+			Founded the Target Node
+			*/
 			cout << "Target found!" << endl;
+			//Remove comment to let algorithm continue to backtrack phase */ 
+			m_oTarget = oMinWeight;
+			m_bTargetFound = true;
 		}
 	}
 	else
 	{
 		if (m_vNodeToExplore.size() > 0)
 		{
-			//Vefore start to search SubOptimal beighbours, search if target Node is in NodeToExplore
+			/*
+			22A1)
+			Founded more node with same weight among all nodes in NodeToExplore
+			*/
+
+			//Before start to search SubOptimal beighbours, search if target Node is in NodeToExplore
 			for_each(m_vNodeToExplore.begin(), m_vNodeToExplore.end(), [&](const Node& node)
 			{
 				if (IsTargetNode(node))
 				{
 					m_bTargetFound = true;
+					m_oTarget = node;
 					cout << "Found target searching in NodeToExplore" << endl;
+					AddToSolution(node);
 				}
 			});
 
-			//Get the vector of node with best sub-optimal weight
-			vector<Node> vSubOptimalNodes;
-			GetSubOptimalNodes(&vSubOptimalNodes);
-
-			if (vSubOptimalNodes.size() > 0 && !m_bTargetFound)
+			if(!m_bTargetFound)
 			{
-				cout << "Found more sub-optimal node with weight " << vSubOptimalNodes.at(0).m_iWeight << " in NodeToExplore." << endl;
-				PrintNodeIn(&m_vNodeToExplore);
+				//Get the vector of node with best sub-optimal weight
+				vector<Node> vSubOptimalNodes;
+				GetSubOptimalNodes(&vSubOptimalNodes);
 
-				//Add SubOptimal node found in ToExploreNotOptimal
-				for_each(vSubOptimalNodes.begin(), vSubOptimalNodes.end(), [&](Node node) {m_vNodeToExploreNotOptimal.insert(node); });
-
-				//for each node in SubOptimal need to get its neighbours
-				vector<Node> vAllNeighbours;
-				vAllNeighbours.reserve(4 * vSubOptimalNodes.size());
-				GetNeighbourNodeFromVectorNode(vAllNeighbours, vSubOptimalNodes);
-				cout << "Neighbours found: " << endl;
-				PrintNodeIn(&vAllNeighbours);
-
-				for_each(vAllNeighbours.begin(), vAllNeighbours.end(), [&](Node node)
+				if (vSubOptimalNodes.size() > 0)
 				{
-					ManageNewNode(node);
+					cout << "Found more sub-optimal node with weight " << vSubOptimalNodes.at(0).m_iWeight << " in NodeToExplore." << endl;
+					PrintNodeIn(&m_vNodeToExplore);
+
+					//Add SubOptimal node found in ToExploreNotOptimal
+					for_each(vSubOptimalNodes.begin(), vSubOptimalNodes.end(), [&](Node node) {
+						m_vNodeToExploreNotOptimal.insert(node); 
+					});
+
+					//for each node in SubOptimal need to get its neighbours
+					vector<Node> vAllNeighbours;
+					vAllNeighbours.reserve(4 * vSubOptimalNodes.size());
+					GetNeighbourNodeFromVectorNode(vAllNeighbours, vSubOptimalNodes);
+					cout << "Neighbours found: " << endl;
+					PrintNodeIn(&vAllNeighbours);
+
+					for_each(vAllNeighbours.begin(), vAllNeighbours.end(), [&](Node node)
+					{
+						ManageNewNode(node);
+					}
+					);
+
+					//Delete from NodeToExplore,they have been moved from SubOptimal to NodeExploredNotOptimal
+					for_each(vSubOptimalNodes.begin(), vSubOptimalNodes.end(), [&](Node node) {m_vNodeToExplore.erase(node); });
+
+					cout << "Now in NodeToExplore:" << endl;
+					PrintNodeIn(&m_vNodeToExplore);
+
+					cout << "Now in NodeToExploreNotOptimal:" << endl;
+					PrintNodeIn(&m_vNodeToExploreNotOptimal);
 				}
-				);
-
-				//Delete from NodeToExplore,they have been moved from SubOptimal to NodeExploredNotOptimal
-				for_each(vSubOptimalNodes.begin(), vSubOptimalNodes.end(), [&](Node node) {m_vNodeToExplore.erase(node); });
-
-				cout << "Now in NodeToExplore:" << endl;
-				PrintNodeIn(&m_vNodeToExplore);
-
-				cout << "Now in NodeToExploreNotOptimal:" << endl;
-				PrintNodeIn(&m_vNodeToExploreNotOptimal);
 			}
-
 		}
 		else
 		{
+			/*23A1: nothing founded */
 			cout << "Can't found a node with min weight in NodeToExplore." << endl;
-			//there aren't more node to explore
 
+			//there aren't more node to explore
 			m_bTargetFound = true;
 		}
 	}
 }
 
-
-inline void PathFindingResolver::SearchAroundNode(const Node& node, const int i_iMapWidth, const int i_iMapHeight, const int i_iLengthFound, const unsigned char* i_pMap)
+void PathFindingResolver::BackTrip()
 {
-	SearchAroundPosition(node.m_iPosition, i_iMapWidth, i_iMapHeight, i_iLengthFound, i_pMap);
-}
+	cout << "Back phase" << endl;
 
-void PathFindingResolver::SearchAroundPosition(const int i_iStartIndexA, const int i_iMapWidth, const int i_iMapHeight, const int i_iLengthFound, const unsigned char* i_pMap)
-{
-	using namespace std;
-	cout << "Searching around position " << i_iStartIndexA << endl;
-	
-	vector<int> vNeighbourhood;
-	vNeighbourhood.reserve(4);
-	GetNeighborhood(vNeighbourhood, i_iStartIndexA, i_iMapWidth, i_iMapWidth);
-	for (int i = 0; i < vNeighbourhood.size(); ++i)
+	vector<Node> m_vSolutionReverted;
+	while (!m_oTarget.IsStartNode())
 	{
-		if (vNeighbourhood.at(i) != -1)
+		m_vSolutionReverted.push_back(m_oTarget);
+		bool founded = false;
+		for_each(m_vNodeToExploreNotOptimal.begin(), m_vNodeToExploreNotOptimal.end(), [&](Node node)
 		{
-			cout << "Valid position" << endl;
+			if (!founded && node.m_iPosition == m_oTarget.m_iParent)
+			{
+				m_oTarget = node;
+				founded = true;
+			}
+		});
 
-			Node oNeighbourhood(vNeighbourhood.at(i), i_iLengthFound + 1);
-			auto result = find(m_vNodeToExplore.begin(), m_vNodeToExplore.end(), oNeighbourhood);
-			if (result != m_vNodeToExplore.end())
-			{
-				cout << "Node: " << vNeighbourhood.at(i) << " contained" << endl;
-			}
-			else
-			{
-				cout << "Node: " << vNeighbourhood.at(i) << " not contained" << endl;
-				if (i_pMap[oNeighbourhood.m_iPosition] == '1')
-				{
-					m_vNodeToExplore.insert(oNeighbourhood);
-					cout << "added with weight " << oNeighbourhood.m_iWeight << '\n' << endl;
-				}
-				else
-				{
-					cout << "but occupied" << '\n' << endl;
-				}
-			}
-		}
-		else
+		for_each(m_vSolutionNotOptimus.begin(), m_vSolutionNotOptimus.end(), [&](Node node)
 		{
-			cout << "Invalid position, -1" << '\n' << endl;
-		}
+			if (!founded && node.m_iPosition == m_oTarget.m_iParent)
+			{
+				m_oTarget = node;
+				founded = true;
+			}
+		});
+
+		for_each(m_vSolution.begin(), m_vSolution.end(), [&](Node node)
+		{
+			if (!founded && node.m_iPosition == m_oTarget.m_iParent)
+			{
+				m_oTarget = node;
+				founded = true;
+			}
+		});
+	}
+	m_oPathFindingOutput.iSize = m_vSolution.size() + m_vSolutionReverted.size();
+	for (int i = 0; i < m_oPathFindingOutput.iSize; )
+	{
+		for_each(m_vSolution.begin(), m_vSolution.end(), [&](Node node)
+		{
+			m_oPathFindingOutput.pOutBuffer[i] = node.m_iPosition;
+			++i;
+		});
+
+		for_each(m_vSolutionReverted.rbegin(), m_vSolutionReverted.rend(), [&](Node node)
+		{
+			m_oPathFindingOutput.pOutBuffer[i] = node.m_iPosition;
+			++i;
+		});
 	}
 }
 
-
-void PathFindingResolver::GetNeighborhood(vector<int>& o_vNeighborhood, int i_iIndexA,const int i_iMapWidth,const int i_iMapHeight) const
+void PathFindingResolver::GetNeighborhood(vector<int>& o_vNeighborhood, int i_iIndexA, const int i_iMapWidth, const int i_iMapHeight) const
 {
 	using namespace Utilities;
 
@@ -260,7 +302,7 @@ void PathFindingResolver::GetNeighbourNodeFromVectorNode(vector<Node>& o_vOutput
 			{
 				if (index != -1 && m_oPathfindingInput.pMap[index] == '1')
 				{
-					o_vOutput.push_back(Node(index, node.m_iWeight + 1));
+					o_vOutput.push_back(Node(index, node.m_iWeight + 1, node.m_iPosition));
 				}
 			});
 		});
@@ -276,6 +318,7 @@ void PathFindingResolver::GetLesserWeightNode(Node* o_oNode, set<Node>* o_oSetTo
 		{
 			o_oNode->m_iPosition = it->m_iPosition;
 			o_oNode->m_iWeight = it->m_iWeight;
+			o_oNode->m_iParent = it->m_iParent;
 			iWeightFound = it->m_iWeight;
 		}
 		else
@@ -321,7 +364,7 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 	bool bFound = false;
 	for_each(m_vSolution.begin(), m_vSolution.end(), [&node,&bFound](Node SolutionNode)
 	{
-		if (node == SolutionNode)
+		if (node == SolutionNode && !bFound)
 		{
 			cout << "Node" << node << " is in solution." << endl;
 			bFound = true;
@@ -334,9 +377,19 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 	}
 	);
 
+	for_each(m_vSolutionNotOptimus.begin(), m_vSolutionNotOptimus.end(), [&node, &bFound](Node SolutionNode)
+	{
+		if (node == SolutionNode && !bFound)
+		{
+			cout << "Node" << node << " is in solution not optimus." << endl;
+			bFound = true;
+		}
+	}
+	);
+
 	for_each(m_vNodeToExplore.begin(), m_vNodeToExplore.end(), [&node, &bFound](Node toExplore)
 	{
-		if (node == toExplore)
+		if (node == toExplore  && !bFound)
 		{
 			cout << "Node" << node << " is in NodeToExplore." << endl;
 			bFound = true;
@@ -352,7 +405,7 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 
 	for_each(m_vNodeToExploreNotOptimal.begin(), m_vNodeToExploreNotOptimal.end(), [&node, &bFound](Node NotOptimal)
 	{
-		if (node == NotOptimal)
+		if (node == NotOptimal  && !bFound)
 		{
 			cout << "Node" << node << " is in NodeToExploreNotOptimal." << endl;
 			bFound = true;
@@ -383,12 +436,12 @@ void PathFindingResolver::MoveNodeToExplore(vector<Node>* o_vNodeToMove)
 			if (it->m_iWeight < NodeFounded->m_iWeight)
 			{
 				m_vNodeToExplore.erase(NodeFounded);
-				m_vNodeToExplore.insert(Node(it->m_iPosition,it->m_iWeight));
+				m_vNodeToExplore.emplace(*it);
 			}
 		}
 		else
 		{
-			m_vNodeToExplore.insert(Node(it->m_iPosition, it->m_iWeight));
+			m_vNodeToExplore.emplace(*it);
 		}
 	}
 }
@@ -429,8 +482,9 @@ void PathFindingResolver::AddToSolution(const Node& i_oNodeToAdd)
 	if (m_vSolution.empty())
 	{
 		m_vSolution.push_back(i_oNodeToAdd);
+		m_oLastNodeAdded = i_oNodeToAdd;
 		++m_iStepCounter;
-		cout << "Added at solution node (" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << ")" << endl;
+		cout << "Added at solution node (" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << i_oNodeToAdd.m_iParent << ")" << endl;
 		return;
 	}
 
@@ -443,14 +497,15 @@ void PathFindingResolver::AddToSolution(const Node& i_oNodeToAdd)
 	{
 
 		m_vSolution.push_back(i_oNodeToAdd);
+		m_oLastNodeAdded = i_oNodeToAdd;
 		++m_iStepCounter;
-		cout << "Added at solution node(" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << ") because of its neighbour " << m_vSolution.at(m_vSolution.size() - 1).m_iPosition << " already in optimum" << endl;
+		cout << "Added at solution node(" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << "," << i_oNodeToAdd.m_iParent << ") because of its neighbour " << m_vSolution.at(m_vSolution.size() - 1).m_iPosition << " already in optimum" << endl;
 		return;
 	}
 	else
 	{
 		m_vSolutionNotOptimus.push_back(i_oNodeToAdd);
-		cout << "Added at SolutionNotOptimum node(" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << ")" << endl;
+		cout << "Added at SolutionNotOptimum node(" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << "," << i_oNodeToAdd.m_iParent << ")" << endl;
 	}
 }
 
@@ -464,7 +519,7 @@ void PathFindingResolver::PrintNodeIn(const set<Node>* i_oSet) const
 {
 	for_each(i_oSet->begin(), i_oSet->end(), [] (Node node) 
 	{
-		cout << "(" << node.m_iPosition << "," << node.m_iWeight << ") ";
+		cout << "(" << node.m_iPosition << "," << node.m_iWeight << "," << node.m_iParent << ")";
 	});
 	cout << endl;
 }
@@ -473,7 +528,7 @@ void PathFindingResolver::PrintNodeIn(const vector<Node>* i_oVec) const
 {
 	for_each(i_oVec->begin(), i_oVec->end(), [](Node node)
 	{
-		cout << "(" << node.m_iPosition << "," << node.m_iWeight << ") ";
+		cout << "(" << node.m_iPosition << "," << node.m_iWeight << "," << node.m_iParent << ")";
 	});
 	cout << endl;
 }
