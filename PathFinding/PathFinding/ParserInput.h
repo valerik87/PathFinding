@@ -11,7 +11,7 @@ namespace PathFindingStructs
 		const PathFindingInput* ReadInput();
 		PathFindingInput m_oPathFindingInput;
 	private:
-		const char* m_cPath = "..\\Input.xml";
+		const char* m_cPath = "README.xml";
 		tinyxml2::XMLDocument m_oDoc;
 		XMLError	m_oError;
 
@@ -20,5 +20,7 @@ namespace PathFindingStructs
 		void ReadGridSize(const XMLNode* i_pNode);
 		void ReadBufferSize(const XMLNode* i_pNode);
 		void ReadTopology(const XMLNode* i_pNode);
+
+		void Clear();
 	};
 }

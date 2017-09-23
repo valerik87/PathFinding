@@ -1,25 +1,13 @@
 ﻿#include "PathFindingResolver.h"
+#include "Logger.h"
 #include "Utilities.h"
 #include <algorithm>
 
 const PathFindingOutput* PathFindingResolver::GetSolution(const PathFindingInput* const i_pPathFindingInput)
 {
-	m_oPathfindingInput = i_pPathFindingInput;
-	m_oPathFindingOutput.pOutBuffer = new int[m_oPathfindingInput.iOutBufferSize];
+	Clear();	
 	
-	m_oPathFindingOutput.iSize = FindPath
-		(
-			m_oPathfindingInput.iStartX,
-			m_oPathfindingInput.iStartY,
-			m_oPathfindingInput.iTargetX,
-			m_oPathfindingInput.iTargetY,
-			m_oPathfindingInput.pMap,
-			m_oPathfindingInput.iMapWidth,
-			m_oPathfindingInput.iMapHeight,
-			m_oPathFindingOutput.pOutBuffer,
-			m_oPathfindingInput.iOutBufferSize
-		);
-
+	m_oPathFindingOutput.m_iSize = FindPath(i_pPathFindingInput);
 	return &m_oPathFindingOutput;
 }
 
@@ -29,58 +17,56 @@ If the shortest path is longer than nOutBufferSize, the calling function might e
 */
 int PathFindingResolver::FindPath
 (
-	const int i_iStartX, const int i_iStartY,
-	const int i_iTargetX, const int i_iTargetY,
-	const unsigned char* i_pMap,
-	const int i_iMapWidth, const int i_iMapHeight,
-	int* i_pOutBuffer, const int i_iOutBufferSize
+	const PathFindingInput* i_pPathFindingInput
 )
 {
 	using namespace Utilities;
 	using namespace std;
 
 	//init default return and outputVariable with unfeasable values
-	int iLengthFound = -1;
-	i_pOutBuffer[0] = iLengthFound;
-	iLengthFound = 0;
+	m_oPathFindingOutput.AllocArray((int)1);
+	*m_oPathFindingOutput.At(0) = -1;
 	
 	//define end conditions
-	m_iStepLimit = i_iOutBufferSize;
-	m_iStepCounter = 0;
+	m_iStepLimit = i_pPathFindingInput->iOutBufferSize;
 	m_bTargetFound = false;
 
-	m_iTargetPosition = -1;
-	GetArrayIndexFromGridIndex(&m_iTargetPosition, i_iTargetX, i_iTargetY, i_iMapWidth, i_iMapHeight);
-	cout << "TargetIndexA: " << m_iTargetPosition << '\n' << endl;
+	GetArrayIndexFromGridIndex(&m_iTargetPosition, i_pPathFindingInput->iTargetX, i_pPathFindingInput->iTargetY, i_pPathFindingInput->iMapWidth, i_pPathFindingInput->iMapHeight);
+	Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "TargetIndex at: %i", m_iTargetPosition);
+	
 
 	//From Start position need to get the list of adjacent obj;
 	int iStartIndexA = -1;
 
 	//1)Define StartNode and insert it in NodeToExplore
-	GetArrayIndexFromGridIndex(&iStartIndexA,i_iStartX, i_iStartY,i_iMapWidth,i_iMapHeight);
-	cout << "StartIndexA: " << iStartIndexA << '\n' <<  endl;
-	Node StartNode(iStartIndexA, iLengthFound, iStartIndexA);
+	GetArrayIndexFromGridIndex(&iStartIndexA, i_pPathFindingInput->iStartX, i_pPathFindingInput->iStartY, i_pPathFindingInput->iMapWidth, i_pPathFindingInput->iMapHeight);
+	Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "StartIndex at: %i", iStartIndexA);
+
+	Node StartNode(iStartIndexA, 0, iStartIndexA);
 	m_vNodeToExplore.insert(StartNode);
 
 	while (m_iStepCounter<m_iStepLimit && !m_bTargetFound)
 	{
-		ExplorationPhase();
+		ExplorationPhase(i_pPathFindingInput);
 	}
-	BackTrip();
-	
-	//TEST
-	/*i_pOutBuffer[0] = 3;
-	i_pOutBuffer[1] = 4;
-	i_pOutBuffer[2] = 5;*/
-	/*return 3;*/
-	return m_oPathFindingOutput.iSize;
+	if (m_bTargetFound)
+	{
+		BackTrip();
+		return m_oPathFindingOutput.m_iSize;
+	}
+	else
+	{
+		//NO SOLUTION FOUND
+		return 0;
+	}
 }
 
-void PathFindingResolver::ExplorationPhase()
+void PathFindingResolver::ExplorationPhase(const PathFindingInput* i_pPathFindingInput)
 {
-	cout << "-------------------------\nExplorationPhase (InSolution:" << m_iStepCounter << " ," << "Iteration: " << ++m_iIterationCounter << "):\nNode in ToExplore: " << m_vNodeToExplore.size() << "\t";
+	++m_iIterationCounter;
+
+	Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "------------------------- ExplorationPhase (InSolution:%i ,Iteration: %i):\n Node in ToExplore: %i\n", m_iStepCounter, m_iIterationCounter, m_vNodeToExplore.size());
 	PrintNodeIn(&m_vNodeToExplore);
-	cout << endl;
 
 	/*
 	2) From NodeToExplore search if there is:
@@ -97,8 +83,8 @@ void PathFindingResolver::ExplorationPhase()
 		-Founded a single local min :
 		-Add to solution
 		*/
-		cout << "Founded a Node(" << oMinWeight.m_iPosition << "," << oMinWeight.m_iWeight << ")" << " in NodeToExplore with a local min weight." << endl;
-		AddToSolution(oMinWeight);
+		Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Founded a Node(%i,%i) in NodeToExplore with a local min weight./n", oMinWeight.m_iPosition, oMinWeight.m_iWeight);
+		AddToSolution(i_pPathFindingInput,oMinWeight);
 
 		m_bTargetFound = IsTargetNode(oMinWeight);
 		if (!m_bTargetFound)
@@ -110,7 +96,7 @@ void PathFindingResolver::ExplorationPhase()
 			*/
 			vector<int> vNeighbourhood;
 			vNeighbourhood.reserve(4);
-			GetNeighborhood(vNeighbourhood, oMinWeight.m_iPosition, m_oPathfindingInput.iMapWidth, m_oPathfindingInput.iMapWidth);
+			GetNeighborhood(vNeighbourhood, oMinWeight.m_iPosition, i_pPathFindingInput->iMapWidth, i_pPathFindingInput->iMapWidth);
 
 			/*
 			Check if neighbours are valid, Set their parent.
@@ -118,7 +104,7 @@ void PathFindingResolver::ExplorationPhase()
 			vector<Node> vNodeToMove;
 			for_each(vNeighbourhood.begin(), vNeighbourhood.end(), [&](int index)
 			{
-				if (index != -1 && m_oPathfindingInput.pMap[index] == '1')
+				if (index != -1 && i_pPathFindingInput->pMap[index] == '1')
 				{
 					vNodeToMove.push_back(Node(index, oMinWeight.m_iWeight + 1, oMinWeight.m_iPosition));
 				}
@@ -130,9 +116,8 @@ void PathFindingResolver::ExplorationPhase()
 			*/
 			MoveNodeToExplore(&vNodeToMove);
 
-			cout << "Now in NodeToExplore: ";
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Now in NodeToExplore : /n",m_vNodeToExplore.size());
 			PrintNodeIn(&m_vNodeToExplore);
-			cout << endl;
 		}
 		else
 		{
@@ -140,7 +125,7 @@ void PathFindingResolver::ExplorationPhase()
 			21A2)
 			Founded the Target Node
 			*/
-			cout << "Target found!" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Target found!");
 			//Remove comment to let algorithm continue to backtrack phase */ 
 			m_oTarget = oMinWeight;
 			m_bTargetFound = true;
@@ -162,8 +147,8 @@ void PathFindingResolver::ExplorationPhase()
 				{
 					m_bTargetFound = true;
 					m_oTarget = node;
-					cout << "Found target searching in NodeToExplore" << endl;
-					AddToSolution(node);
+					Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Found target searching in NodeToExplore\n");
+					AddToSolution(i_pPathFindingInput,node);
 				}
 			});
 
@@ -175,7 +160,7 @@ void PathFindingResolver::ExplorationPhase()
 
 				if (vSubOptimalNodes.size() > 0)
 				{
-					cout << "Found more sub-optimal node with weight " << vSubOptimalNodes.at(0).m_iWeight << " in NodeToExplore." << endl;
+					Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Found more sub - optimal node with weight %i in NodeToExplore.\n", vSubOptimalNodes.at(0).m_iWeight);
 					PrintNodeIn(&m_vNodeToExplore);
 
 					//Add SubOptimal node found in ToExploreNotOptimal
@@ -186,8 +171,8 @@ void PathFindingResolver::ExplorationPhase()
 					//for each node in SubOptimal need to get its neighbours
 					vector<Node> vAllNeighbours;
 					vAllNeighbours.reserve(4 * vSubOptimalNodes.size());
-					GetNeighbourNodeFromVectorNode(vAllNeighbours, vSubOptimalNodes);
-					cout << "Neighbours found: " << endl;
+					GetNeighbourNodeFromVectorNode(i_pPathFindingInput,vAllNeighbours, vSubOptimalNodes);
+					Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Neighbours found:\n");
 					PrintNodeIn(&vAllNeighbours);
 
 					for_each(vAllNeighbours.begin(), vAllNeighbours.end(), [&](Node node)
@@ -199,10 +184,10 @@ void PathFindingResolver::ExplorationPhase()
 					//Delete from NodeToExplore,they have been moved from SubOptimal to NodeExploredNotOptimal
 					for_each(vSubOptimalNodes.begin(), vSubOptimalNodes.end(), [&](Node node) {m_vNodeToExplore.erase(node); });
 
-					cout << "Now in NodeToExplore:" << endl;
+					Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Now in NodeToExplore:");
 					PrintNodeIn(&m_vNodeToExplore);
 
-					cout << "Now in NodeToExploreNotOptimal:" << endl;
+					Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Now in NodeToExploreNotOptimal:");
 					PrintNodeIn(&m_vNodeToExploreNotOptimal);
 				}
 			}
@@ -210,17 +195,16 @@ void PathFindingResolver::ExplorationPhase()
 		else
 		{
 			/*23A1: nothing founded */
-			cout << "Can't found a node with min weight in NodeToExplore." << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Can't found a node with min weight in NodeToExplore.");
 
 			//there aren't more node to explore
 			m_bTargetFound = true;
 		}
 	}
 }
-
 void PathFindingResolver::BackTrip()
 {
-	cout << "Back phase" << endl;
+	Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Back phase");
 
 	vector<Node> m_vSolutionReverted;
 	while (!m_oTarget.IsStartNode())
@@ -254,18 +238,19 @@ void PathFindingResolver::BackTrip()
 			}
 		});
 	}
-	m_oPathFindingOutput.iSize = m_vSolution.size() + m_vSolutionReverted.size();
-	for (int i = 0; i < m_oPathFindingOutput.iSize; )
+	m_oPathFindingOutput.m_iSize = m_vSolution.size() + m_vSolutionReverted.size();
+	m_oPathFindingOutput.AllocArray(m_oPathFindingOutput.m_iSize);
+	for (int i = 0; i < m_oPathFindingOutput.m_iSize; )
 	{
 		for_each(m_vSolution.begin(), m_vSolution.end(), [&](Node node)
 		{
-			m_oPathFindingOutput.pOutBuffer[i] = node.m_iPosition;
+			*m_oPathFindingOutput.At(i) = node.m_iPosition;
 			++i;
 		});
 
 		for_each(m_vSolutionReverted.rbegin(), m_vSolutionReverted.rend(), [&](Node node)
 		{
-			m_oPathFindingOutput.pOutBuffer[i] = node.m_iPosition;
+			*m_oPathFindingOutput.At(i) = node.m_iPosition;
 			++i;
 		});
 	}
@@ -281,14 +266,9 @@ void PathFindingResolver::GetNeighborhood(vector<int>& o_vNeighborhood, int i_iI
 	o_vNeighborhood.push_back(GetBottomIndexFromArrayIndex(i_iIndexA, i_iMapWidth, i_iMapHeight));
 	o_vNeighborhood.push_back(GetLeftIndexFromArrayIndex(i_iIndexA, i_iMapWidth, i_iMapHeight));
 
-	/*cout << "UpperPosIndex: " << o_vNeighborhood.at(0) << endl;
-	cout << "RightPosIndex: " << o_vNeighborhood.at(1) << endl;
-	cout << "LeftPosIndex: " << o_vNeighborhood.at(3) << endl;
-	cout << "BottomPosIndex: " << o_vNeighborhood.at(2) << endl;*/
-
+	Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "UpperPosIndex:%i ,RightPosIndex: %i,BottomPosIndex: %i,LeftPosIndex: %i", o_vNeighborhood.at(0), o_vNeighborhood.at(1), o_vNeighborhood.at(2), o_vNeighborhood.at(3));
 }
-
-void PathFindingResolver::GetNeighbourNodeFromVectorNode(vector<Node>& o_vOutput, const vector<Node>& i_vInput) const
+void PathFindingResolver::GetNeighbourNodeFromVectorNode(const PathFindingInput* i_pPathFindingInput,vector<Node>& o_vOutput, const vector<Node>& i_vInput) const
 {
 	if (i_vInput.size() > 0)
 	{
@@ -296,11 +276,11 @@ void PathFindingResolver::GetNeighbourNodeFromVectorNode(vector<Node>& o_vOutput
 		{
 			vector<int> vNeighbourhood;
 			vNeighbourhood.reserve(4 * i_vInput.size());
-			GetNeighborhood(vNeighbourhood, node.m_iPosition, m_oPathfindingInput.iMapWidth, m_oPathfindingInput.iMapWidth);
+			GetNeighborhood(vNeighbourhood, node.m_iPosition, i_pPathFindingInput->iMapWidth, i_pPathFindingInput->iMapWidth);
 
 			for_each(vNeighbourhood.begin(), vNeighbourhood.end(), [&](int index)
 			{
-				if (index != -1 && m_oPathfindingInput.pMap[index] == '1')
+				if (index != -1 && i_pPathFindingInput->pMap[index] == '1')
 				{
 					o_vOutput.push_back(Node(index, node.m_iWeight + 1, node.m_iPosition));
 				}
@@ -308,7 +288,6 @@ void PathFindingResolver::GetNeighbourNodeFromVectorNode(vector<Node>& o_vOutput
 		});
 	}
 }
-
 void PathFindingResolver::GetLesserWeightNode(Node* o_oNode, set<Node>* o_oSetToSearch)
 {
 	int iWeightFound = INT_MAX;
@@ -336,7 +315,6 @@ void PathFindingResolver::GetLesserWeightNode(Node* o_oNode, set<Node>* o_oSetTo
 		o_oSetToSearch->erase(*o_oNode);
 	}
 }
-
 void PathFindingResolver::GetSubOptimalNodes(vector<Node>* o_vSubOptimal)
 {
 	int iBestSubOptimalWeight = INT_MAX;
@@ -366,12 +344,12 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 	{
 		if (node == SolutionNode && !bFound)
 		{
-			cout << "Node" << node << " is in solution." << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Node %s is in solution.",node.ToChar());
 			bFound = true;
 
 			if (node.WeightCompare(SolutionNode) == -1)
 			{
-				cout << "PROBLEM_PROBLEM Found a node with better weight of one already in solution PROBLEM_PROBLEM" << endl;
+				Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::PATH_FINDING, "Found a node with better weight of one already in solution");
 			}
 		}
 	}
@@ -381,7 +359,7 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 	{
 		if (node == SolutionNode && !bFound)
 		{
-			cout << "Node" << node << " is in solution not optimus." << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Node %s is in solution not optimus.", node.ToChar());
 			bFound = true;
 		}
 	}
@@ -391,12 +369,12 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 	{
 		if (node == toExplore  && !bFound)
 		{
-			cout << "Node" << node << " is in NodeToExplore." << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Node %s is in NodeToExplore.", node.ToChar());
 			bFound = true;
 
 			if (node.WeightCompare(toExplore) == -1)
 			{
-				cout << node << " < " << toExplore << " updated in NodeToExplore" << endl;
+				Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Node %s < %s, updated in NodeToExplore.", node.ToChar(),toExplore.ToChar());
 				toExplore.m_iWeight = node.m_iWeight;
 			}
 		}
@@ -407,12 +385,12 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 	{
 		if (node == NotOptimal  && !bFound)
 		{
-			cout << "Node" << node << " is in NodeToExploreNotOptimal." << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Node %s is in NodeToExploreNotOptimal.", node.ToChar());
 			bFound = true;
 
 			if (node.WeightCompare(NotOptimal) == -1)
 			{
-				cout << node << " < " << NotOptimal << " updated in NodeToExploreNotOptimal" << endl;
+				Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Node %s < %s, updated in NodeToExploreNotOptimal.", node.ToChar(), NotOptimal.ToChar());
 				NotOptimal.m_iWeight = node.m_iWeight;
 			}
 		}
@@ -422,7 +400,7 @@ void PathFindingResolver::ManageNewNode(const Node& node)
 	if (!bFound)
 	{
 		m_vNodeToExplore.insert(node);
-		cout << node << " added to NodeToExplore." << endl;
+		Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Node %s  added to NodeToExplore.", node.ToChar());
 	}
 }
 void PathFindingResolver::MoveNodeToExplore(vector<Node>* o_vNodeToMove)
@@ -445,13 +423,48 @@ void PathFindingResolver::MoveNodeToExplore(vector<Node>* o_vNodeToMove)
 		}
 	}
 }
+void PathFindingResolver::AddToSolution(const PathFindingInput* i_pPathFindingInput, const Node& i_oNodeToAdd)
+{
+
+	//first time is always empty
+	if (m_vSolution.empty())
+	{
+		m_vSolution.push_back(i_oNodeToAdd);
+		++m_iStepCounter;
+		Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Added at solution node(%i,%i,%i)", i_oNodeToAdd.m_iPosition, i_oNodeToAdd.m_iWeight, i_oNodeToAdd.m_iParent);
+	}
+	else
+	{
+		/*
+		check is last node inserted is a neighbour of the node to insert now.
+		- yes: can assume is coming from an optimum path, add it
+		- no: store in SolutionNotOptimum
+		*/
+		if (IsNodeInNeighborhood(i_pPathFindingInput,m_vSolution.at(m_vSolution.size() - 1), i_oNodeToAdd))
+		{
+			m_vSolution.push_back(i_oNodeToAdd);
+			++m_iStepCounter;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Added at solution node(%i,%i,%i) because of its neighbour %i already in optimum.", i_oNodeToAdd.m_iPosition, i_oNodeToAdd.m_iWeight, i_oNodeToAdd.m_iParent, m_vSolution.at(m_vSolution.size() - 1).m_iPosition);
+		}
+		else
+		{
+			m_vSolutionNotOptimus.push_back(i_oNodeToAdd);
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "Added at SolutionNotOptimum node(%i,%i,%i)", i_oNodeToAdd.m_iPosition, i_oNodeToAdd.m_iWeight, i_oNodeToAdd.m_iParent);
+		}
+	}
+	if (m_iStepCounter >= m_iStepLimit)
+	{
+		m_iStepLimit = (int)(m_iStepLimit*m_fStepLimitMultiplier);
+		Logger::GetInstance().Log(Logger::SEVERITY::LOG, Logger::CONTEXT::PATH_FINDING, "ATTENTION: StepLimit increase to %i", m_iStepLimit);
+	}
+}
 
 
-bool PathFindingResolver::IsNodeInNeighborhood(const Node& i_oNodeIn, const Node& i_oNodeNeighbour) const
+bool PathFindingResolver::IsNodeInNeighborhood(const PathFindingInput* i_pPathFindingInput,const Node& i_oNodeIn, const Node& i_oNodeNeighbour) const
 {
 	vector<int> vNeighbourhood;
 	vNeighbourhood.reserve(4);
-	GetNeighborhood(vNeighbourhood, i_oNodeNeighbour.m_iPosition, m_oPathfindingInput.iMapWidth, m_oPathfindingInput.iMapHeight);
+	GetNeighborhood(vNeighbourhood, i_oNodeNeighbour.m_iPosition, i_pPathFindingInput->iMapWidth, i_pPathFindingInput->iMapHeight);
 
 	bool bFound = false;
 	for_each(vNeighbourhood.begin(), vNeighbourhood.end(), [&](int iNeighbourPosition)
@@ -461,7 +474,6 @@ bool PathFindingResolver::IsNodeInNeighborhood(const Node& i_oNodeIn, const Node
 	);
 	return bFound;
 }
-
 bool PathFindingResolver::IsNodeInSolution(const Node& i_oNode) const
 {
 	for_each(m_vSolution.begin(), m_vSolution.end(), [&](Node node)
@@ -475,61 +487,37 @@ bool PathFindingResolver::IsNodeInSolution(const Node& i_oNode) const
 }
 
 
-void PathFindingResolver::AddToSolution(const Node& i_oNodeToAdd)
-{
-
-	//first time is always empty
-	if (m_vSolution.empty())
-	{
-		m_vSolution.push_back(i_oNodeToAdd);
-		m_oLastNodeAdded = i_oNodeToAdd;
-		++m_iStepCounter;
-		cout << "Added at solution node (" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << i_oNodeToAdd.m_iParent << ")" << endl;
-		return;
-	}
-
-	/*
-	check is last node inserted is a neighbour of the node to insert now.
-	- yes: can assume is coming from an optimum path, add it
-	- no: store in SolutionNotOptimum
-	*/
-	if (IsNodeInNeighborhood(m_vSolution.at(m_vSolution.size() - 1), i_oNodeToAdd))
-	{
-
-		m_vSolution.push_back(i_oNodeToAdd);
-		m_oLastNodeAdded = i_oNodeToAdd;
-		++m_iStepCounter;
-		cout << "Added at solution node(" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << "," << i_oNodeToAdd.m_iParent << ") because of its neighbour " << m_vSolution.at(m_vSolution.size() - 1).m_iPosition << " already in optimum" << endl;
-		return;
-	}
-	else
-	{
-		m_vSolutionNotOptimus.push_back(i_oNodeToAdd);
-		cout << "Added at SolutionNotOptimum node(" << i_oNodeToAdd.m_iPosition << "," << i_oNodeToAdd.m_iWeight << "," << i_oNodeToAdd.m_iParent << ")" << endl;
-	}
-}
-
 bool PathFindingResolver::IsTargetNode(const Node& node)
 {
 	return node.m_iPosition == m_iTargetPosition;
 }
-
-
 void PathFindingResolver::PrintNodeIn(const set<Node>* i_oSet) const
 {
 	for_each(i_oSet->begin(), i_oSet->end(), [] (Node node) 
 	{
-		cout << "(" << node.m_iPosition << "," << node.m_iWeight << "," << node.m_iParent << ")";
+		Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "(%i,%i,%i)/n", node.m_iPosition, node.m_iWeight,node.m_iParent);
 	});
-	cout << endl;
 }
-
 void PathFindingResolver::PrintNodeIn(const vector<Node>* i_oVec) const
 {
 	for_each(i_oVec->begin(), i_oVec->end(), [](Node node)
 	{
-		cout << "(" << node.m_iPosition << "," << node.m_iWeight << "," << node.m_iParent << ")";
+		Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::PATH_FINDING, "(%i,%i,%i)/n", node.m_iPosition, node.m_iWeight, node.m_iParent);
 	});
-	cout << endl;
 }
 
+
+void PathFindingResolver::Clear()
+{
+	m_bTargetFound = false;
+	m_iIterationCounter = 0;
+	m_iStepCounter = 0;
+	m_iStepLimit = -1;
+	m_iTargetPosition = -1;
+	m_oPathFindingOutput.Clear();
+	m_oTarget.Invalidate();
+	m_vNodeToExplore.clear();
+	m_vNodeToExploreNotOptimal.clear();
+	m_vSolution.clear();
+	m_vSolutionNotOptimus.clear();
+}

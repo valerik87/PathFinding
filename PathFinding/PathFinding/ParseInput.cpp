@@ -1,20 +1,20 @@
 #include "ParserInput.h"
+
+#include "Logger.h"
 #include <iostream>
 using namespace std;
 
-#ifndef XMLCheckResult
-	#define XML_CHECK_RESULT(a_eResult) if (a_eResult != XML_SUCCESS) { cout << "Error: " << a_eResult << endl;}
-#endif
 namespace PathFindingStructs
 {
 
 	const PathFindingStructs::PathFindingInput* ParserInput::ReadInput()
 	{
-		cout << "\nReading Input" << endl;
+		Clear();
+		Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::INPUT_PARSER, "Reading Input");
 
 		m_oDoc.LoadFile(m_cPath);
 		m_oError = m_oDoc.ErrorID();
-		XML_CHECK_RESULT(m_oError)
+		Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 
 		XMLNode * pRoot = m_oDoc.FirstChild();
 		if (pRoot)
@@ -27,12 +27,12 @@ namespace PathFindingStructs
 		}
 		else
 		{
-			cout << "Input root invalid?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::INPUT_PARSER, "Input root invalid?");
 		}
 	
 		if (m_oError != XMLError::XML_SUCCESS)
 		{
-			cout << "Error reading file" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::INPUT_PARSER, "Error reading file");
 			return nullptr;
 		}
 		return &m_oPathFindingInput;
@@ -45,12 +45,12 @@ namespace PathFindingStructs
 		{
 			int iOutInt = -1;
 			m_oError = pStartPosX->QueryIntText(&iOutInt);
-			XML_CHECK_RESULT(m_oError)
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			m_oPathFindingInput.iStartX = iOutInt;
 		}
 		else
 		{
-			cout << "StartPosX malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "StartPosX malformed?");
 		}
 
 		const XMLElement * pStartPosY = i_pNode->FirstChildElement("StartPosY");
@@ -58,14 +58,14 @@ namespace PathFindingStructs
 		{
 			int iOutInt = -1;
 			m_oError = pStartPosY->QueryIntText(&iOutInt);
-			XML_CHECK_RESULT(m_oError);
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			m_oPathFindingInput.iStartY = iOutInt;
 		}
 		else
 		{
-			cout << "StartPosY malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "StartPosY malformed?");
 		}
-		cout << "START_POS: " << m_oPathFindingInput.iStartX << "," << m_oPathFindingInput.iStartY << endl;
+		Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "START_POS (%i,%i)",m_oPathFindingInput.iStartX,m_oPathFindingInput.iStartY);
 	}
 
 	void ParserInput::ReadTarget(const XMLNode* i_pNode)
@@ -76,12 +76,12 @@ namespace PathFindingStructs
 		{
 			int iOutInt = -1;
 			m_oError = pTargetPosX->QueryIntText(&iOutInt);
-			XML_CHECK_RESULT(m_oError);
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			m_oPathFindingInput.iTargetX = iOutInt;
 		}
 		else
 		{
-			cout << "TargetPosX malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "TargetPosX malformed?");
 		}
 
 		const XMLElement * pTargetPosY = i_pNode->FirstChildElement("TargetPosY");
@@ -89,14 +89,14 @@ namespace PathFindingStructs
 		{
 			int iOutInt = -1;
 			m_oError = pTargetPosY->QueryIntText(&iOutInt);
-			XML_CHECK_RESULT(m_oError);
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			m_oPathFindingInput.iTargetY = iOutInt;
 		}
 		else
 		{
-			cout << "StartPosY malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "TargetPosY malformed?");
 		}
-		cout << "TARGET_POS: " << m_oPathFindingInput.iTargetX << "," << m_oPathFindingInput.iTargetY << endl;
+		Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "TARGET_POS (%i,%i)", m_oPathFindingInput.iTargetX, m_oPathFindingInput.iTargetY);
 	}
 
 	void ParserInput::ReadGridSize(const XMLNode* i_pNode)
@@ -107,12 +107,12 @@ namespace PathFindingStructs
 		{
 			int iOutInt = -1;
 			m_oError = pMapWidth->QueryIntText(&iOutInt);
-			XML_CHECK_RESULT(m_oError);
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			m_oPathFindingInput.iMapWidth = iOutInt;
 		}
 		else
 		{
-			cout << "MapWidth malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "MapWidth malformed?");
 		}
 
 		const XMLElement * pMapHeight = i_pNode->FirstChildElement("MapHeight");
@@ -120,14 +120,14 @@ namespace PathFindingStructs
 		{
 			int iOutInt = -1;
 			m_oError = pMapHeight->QueryIntText(&iOutInt);
-			XML_CHECK_RESULT(m_oError);
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			m_oPathFindingInput.iMapHeight = iOutInt;
 		}
 		else
 		{
-			cout << "MapHeight malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "MapHeight malformed?");
 		}
-		cout << "MAP SIZE(W,H): " << m_oPathFindingInput.iMapWidth << "," << m_oPathFindingInput.iMapHeight << endl;
+		Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "MAP SIZE(W,H):(%i,%i)", m_oPathFindingInput.iMapWidth, m_oPathFindingInput.iMapHeight);
 	}
 
 	void ParserInput::ReadBufferSize(const XMLNode* i_pNode)
@@ -138,14 +138,14 @@ namespace PathFindingStructs
 		{
 			int iOutInt = -1;
 			m_oError = pBufferSize->QueryIntText(&iOutInt);
-			XML_CHECK_RESULT(m_oError);
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			m_oPathFindingInput.iOutBufferSize = iOutInt;
 		}
 		else
 		{
-			cout << "BufferSize malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "BufferSize malformed?");
 		}
-		cout << "BUFFER SIZE: " << m_oPathFindingInput.iOutBufferSize << endl;
+		Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "BUFFER SIZE: &i", m_oPathFindingInput.iOutBufferSize);
 	}
 
 	void ParserInput::ReadTopology(const XMLNode* i_pNode)
@@ -157,10 +157,11 @@ namespace PathFindingStructs
 			const char * pOutChar = pMap->GetText();
 			if (pOutChar != nullptr)
 			{
-				int size = strlen(pOutChar);
-
 				char* cpy = const_cast<char*>(pOutChar);	// an alias to iterate through pOutChar without moving pOutChar
+				
+				int size = strlen(pOutChar);
 				char* temp = new char[size];				// this one produces the desired string
+				
 				pOutChar = temp;							
 
 				while (*cpy != '\0') 
@@ -175,15 +176,23 @@ namespace PathFindingStructs
 			}
 			else
 			{
-				cout << "Empty Map?" << endl;
 				m_oError = XMLError::XML_ERROR_EMPTY_DOCUMENT;
-				XML_CHECK_RESULT(m_oError);
+				Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Error: &i", m_oError);
 			}
 		}
 		else
 		{
-			cout << "Map malformed?" << endl;
+			Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "Map malformed?");
 		}
-		printf("MAP: %s\n", m_oPathFindingInput.pMap);
+
+		Logger::GetInstance().Log(Logger::SEVERITY::ERR, Logger::CONTEXT::INPUT_PARSER, "MAP: %s", m_oPathFindingInput.pMap);
+	}
+
+	void ParserInput::Clear()
+	{
+		m_oDoc.Clear();
+		m_oDoc.ClearError();
+		m_oError = XMLError::XML_SUCCESS;
+		m_oPathFindingInput.Clear();
 	}
 }

@@ -1,4 +1,6 @@
 #include "Graphic.h"
+
+#include "Logger.h"
 #include "PathFindingInput.h"
 #include "Utilities.h"
 
@@ -6,51 +8,43 @@
 //WinSreen
 void Graphic::InitGraphic(sf::RenderWindow* i_oWindow)
 {
-	m_oWindow = i_oWindow;
+	if (i_oWindow != nullptr)
+	{
+		m_oWindow = i_oWindow;
 
-	//Generate Button
-	sf::Vector2f	m_vGreenBGSize(GENERATE_BUTTON_SIZE_X, GENERATE_BUTTON_SIZE_Y);
-	m_oGenerate.SetSize(m_vGreenBGSize);
-	sf::Vector2f	m_vGreenBGOrigin(SCREEN_SIZE_X / 2 - GENERATE_BUTTON_SIZE_X / 2, SCREEN_SIZE_Y*0.9f);
-	m_oGenerate.SetPosition(m_vGreenBGOrigin);
-	m_oGenerate.SetFillColor(Color::Green);
+		//Generate Button
+		sf::Vector2f	m_vGreenBGSize(GENERATE_BUTTON_SIZE_X, GENERATE_BUTTON_SIZE_Y);
+		m_oGenerate.SetSize(m_vGreenBGSize);
+		sf::Vector2f	m_vGreenBGOrigin(SCREEN_SIZE_X / 2 - GENERATE_BUTTON_SIZE_X / 2, SCREEN_SIZE_Y*0.9f);
+		m_oGenerate.SetPosition(m_vGreenBGOrigin);
+		m_oGenerate.SetFillColor(Color::Green);
+		m_oGenerate.SetText("Generate");
+	}	
 }
 
 void Graphic::SetSolution(const PathFindingOutput* const i_pGridOutput)
 {
-	if (i_pGridOutput != nullptr && i_pGridOutput->pOutBuffer != nullptr)
+	if (i_pGridOutput != nullptr && i_pGridOutput->m_iSize != -1)
 	{
-		if (i_pGridOutput->iSize != -1)
-		{		
-			m_oPathTiles.clear();
-			m_oPathTiles.resize(i_pGridOutput->iSize);
+		m_oPathTiles.clear();
+		m_oPathTiles.resize(i_pGridOutput->m_iSize);
 
-			int iCount = 0;
-			//using -1 as end path, this because shortest path can be shorter than buffer size
-			while (iCount < i_pGridOutput->iSize && i_pGridOutput->pOutBuffer[iCount] != -1)
-			{
-				using namespace Utilities;
-				int X = 0;
-				int Y = 0;
-				GetGridIndexFromArrayIndex(i_pGridOutput->pOutBuffer[iCount], &X, &Y, m_iMapWidth, m_iMapHeight);
-	
-				sf::Vector2f	m_vPathTileSize(TILE_SIZE, TILE_SIZE);
-				m_oPathTiles[iCount].setSize(m_vPathTileSize);
-				m_oPathTiles[iCount].setPosition(GetGridPositionV2f(X, Y));
-
-				++iCount;
-			}
-			m_bDrawSolution = true;
-		}
-		else
+		int iCount = 0;
+		//using -1 as end path, this because shortest path can be shorter than buffer size
+		while (iCount < i_pGridOutput->m_iSize && *i_pGridOutput->At(iCount) != -1)
 		{
-			cout << "Graphic::SetSolution GridOutput size = -1" << endl;
-		}		
-		
-	}
-	else
-	{
-		cout << "Graphic::SetSolution PathFindingOutput or GridOutput nullptr" << endl;
+			using namespace Utilities;
+			int X = 0;
+			int Y = 0;
+			GetGridIndexFromArrayIndex(*i_pGridOutput->At(iCount), &X, &Y, m_iMapWidth, m_iMapHeight);
+
+			sf::Vector2f	m_vPathTileSize(TILE_SIZE, TILE_SIZE);
+			m_oPathTiles[iCount].setSize(m_vPathTileSize);
+			m_oPathTiles[iCount].setPosition(GetGridPositionV2f(X, Y));
+
+			++iCount;
+		}
+		m_bDrawSolution = true;
 	}
 }
 
@@ -60,14 +54,10 @@ void Graphic::UpdateGraphic()
 	m_oWindow->clear();
 
 	//Draw Generate button
-	m_oWindow->draw(m_oGenerate.Draw());
+	m_oGenerate.Draw(*m_oWindow);
 
 	//Draw White Background
 	m_oWindow->draw(m_oWhiteRect);
-	//Draw Start Tile
-	m_oWindow->draw(m_oStartTile);
-	//Draw Target Tile
-	m_oWindow->draw(m_oTargetTile);
 
 	//draw Obstacles Tiles
 	for (int i = 0; i < m_oObstacles.size(); ++i)
@@ -84,6 +74,11 @@ void Graphic::UpdateGraphic()
 		}
 	}
 
+	//Draw Start Tile
+	m_oWindow->draw(m_oStartTile);
+	//Draw Target Tile
+	m_oWindow->draw(m_oTargetTile);
+
 	//Draw Grid
 	for (int i = 0; i < m_oVerticalLines.size(); i++)
 	{
@@ -94,6 +89,7 @@ void Graphic::UpdateGraphic()
 		m_oWindow->draw(m_oHorizontalLines[i].GetVertex(), 2, sf::Lines);
 	}
 	
+
 
 	m_oWindow->display();
 }
@@ -159,7 +155,7 @@ void Graphic::SetGridParams(const PathFindingInput* i_pGridInput)
 		if (i_pGridInput->pMap[i] == '0')
 		{
 			++iCount;
-			cout << "At ArrayIndex " << i << " founded a zero" << endl;			
+			Logger::GetInstance().Log(Logger::SEVERITY::DEBUG, Logger::CONTEXT::GRAPHIC, "At index %i founded a zero", i);
 		}
 	}
 	m_oObstacles.clear();

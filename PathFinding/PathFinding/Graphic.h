@@ -25,6 +25,7 @@ public:
 	void SetSolution(const PathFindingOutput* i_pGridOutut);
 
 	const Button* GetGenerateButton() { return &m_oGenerate; };
+	const Button* GetReadFileButton() { return &m_oGenerate; };
 
 private:
 
@@ -58,11 +59,13 @@ private:
 	float  BG_SIZE_X = 200.f;
 	float  BG_SIZE_Y = 200.f;
 	sf::RectangleShape	m_oWhiteRect;
+	sf::RectangleShape	m_oSolutionBackground;
 
 	//Generate Button
-	const float GENERATE_BUTTON_SIZE_X = 65.f;
+	const float GENERATE_BUTTON_SIZE_X = 140.f;
 	const float GENERATE_BUTTON_SIZE_Y = 30.0f;
 	Button m_oGenerate;
+	Button m_oReadFile;
 
 	bool	m_bDrawSolution;
 };

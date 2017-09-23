@@ -2,10 +2,9 @@
 
 #include <iostream>
 #include <set>
+#include <sstream>
 #include <vector>
 #include "ParserInput.h"
-
-
 
 using namespace PathFindingStructs;
 using namespace std;
@@ -13,7 +12,11 @@ using namespace std;
 class PathFindingResolver
 {
 public:
-	PathFindingResolver():
+	PathFindingResolver() :
+		m_iIterationCounter(-1),
+		m_iStepCounter(0),
+		m_iStepLimit(-1),
+		m_iTargetPosition(-1),
 		m_oPathFindingOutput()
 	{};
 	const PathFindingOutput* GetSolution(const PathFindingInput* const i_pPathFindingInput);
@@ -50,9 +53,16 @@ private:
 		{
 			return this->m_iPosition < val.m_iPosition;
 		}
-		friend std::ostream & operator<<(std::ostream &os, Node const &m)
+		/*friend std::ostream & operator<<(std::ostream &os, Node const &m)
 		{
 			return os << "(" << m.m_iPosition << "," << m.m_iWeight << "," << m.m_iParent << ")";
+		}*/
+
+		const char* ToChar() const
+		{
+			char toChar[25];
+			sprintf_s(toChar, "(%i,%i,%i)", m_iPosition, m_iWeight, m_iParent);
+			return toChar;
 		}
 
 		bool IsValid() const
@@ -76,11 +86,7 @@ private:
 		int m_iParent;
 	};
 
-	int		FindPath(const int i_iStartX, const int i_iStartY,
-					const int i_iTargetX, const int i_iTargetY,
-					const unsigned char* i_pMap, 
-					const int i_iMapWidth, const int i_iMapHeight,
-					int* i_pOutBuffer, const int i_iOutBufferSize);
+	int		FindPath(const PathFindingInput* i_pPathFindingInput);
 
 	/*
 	Starting from NodeToExplore search for a local min.
@@ -90,7 +96,7 @@ private:
 	-Found multiple sub optimal local min:
 		- Explore all best sub-optimal. Add their neighbour to NodeToExplore, move sub-optimal in NodeExploredNotOptimal.
 	*/
-	void	ExplorationPhase();
+	void	ExplorationPhase(const PathFindingInput* i_pPathFindingInput);
 	void	BackTrip();
 	
 	/*
@@ -98,12 +104,12 @@ private:
 	- Node come from a Node already in Solution(so optimum).
 	- Node come from a Node in NodeExploredNotOptimal.
 	*/
-	void	AddToSolution(const Node& node);
+	void	AddToSolution(const PathFindingInput* i_pPathFindingInput, const Node& node);
 	bool	IsTargetNode(const Node& node);
 
 	//Fill the vector with the feasable four neighborhood
 	void	GetNeighborhood(vector<int>& o_vNeighborhood, const int i_iIndexA, const int i_iMapWidth, int i_iMapHeight) const;
-	void	GetNeighbourNodeFromVectorNode(vector<Node>& o_vOutput, const vector<Node>& i_vInput) const;
+	void	GetNeighbourNodeFromVectorNode(const PathFindingInput* i_pPathFindingInput,vector<Node>& o_vOutput, const vector<Node>& i_vInput) const;
 	void	GetLesserWeightNode(Node* o_oNode ,set<Node>* o_oSetToSearch);
 	void	GetSubOptimalNodes(vector<Node>* o_vSubOptimal);
 
@@ -111,19 +117,20 @@ private:
 	void	MoveNodeToExplore(vector<Node>* i_vNodeToMove);
 	
 	bool	IsNodeInSolution(const Node& i_oNode) const;
-	bool	IsNodeInNeighborhood(const Node& i_oNodeIn, const Node& i_oNodeNeighbour) const;
+	bool	IsNodeInNeighborhood(const PathFindingInput* i_pPathFindingInput,const Node& i_oNodeIn, const Node& i_oNodeNeighbour) const;
 
-	PathFindingInput		m_oPathfindingInput;
+	void	Clear();
+
 	PathFindingOutput		m_oPathFindingOutput;
 	
 	vector<Node>	m_vSolution;
 	vector<Node>	m_vSolutionNotOptimus;
 	set<Node>		m_vNodeToExplore;
 	set<Node>		m_vNodeToExploreNotOptimal;
-	Node			m_oLastNodeAdded;
 	Node			m_oTarget;
 
 	int				m_iStepLimit;
+	float			m_fStepLimitMultiplier = 2; //actually hardcoded (i prefer to avoid magic number) but can be an input variable =)
 	int				m_iStepCounter;
 	int				m_iTargetPosition;
 	bool			m_bTargetFound;
@@ -131,5 +138,5 @@ private:
 	void			PrintNodeIn(const set<Node>* i_oSet) const;
 	void			PrintNodeIn(const vector<Node>* i_oVec) const;
 
-	int				m_iIterationCounter = 0; //TO REMOVE
+	int				m_iIterationCounter = 0; //Only for logging
 };

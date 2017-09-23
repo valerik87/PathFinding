@@ -5,14 +5,18 @@ using namespace sf;
 
 class Button : public RectangleShape {
 public:
-	Button() {};
+	Button() :m_oText(){};
 	Button(Vector2f size);
 
 	void SetPosition(Vector2f pos);
 	void SetFillColor(Color color);
 	void SetSize(Vector2f size);
+	void SetText(const char* i_cText);
 
 	bool IsMouseClickOn(Vector2i i_iMousePosition) const ;
 
-	RectangleShape& Draw() { return dynamic_cast<RectangleShape&>(*this); }; 
+	void Draw(sf::RenderWindow& i_oWindow);
+private:
+	Text m_oText;
+	Font m_oFont;
 };
